@@ -1,6 +1,6 @@
 # Rust HTTP server
 
-**Learning to use Elixir programming language**
+**Learning to use Rust programming language**
 
 ## Compile
 ```terminal
