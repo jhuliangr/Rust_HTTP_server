@@ -33,7 +33,9 @@ impl Handler for WebsiteHandler{
         // Response::new(StatusCode::Ok, Some("<h1>Test 1</h1>".to_string()))
         match request.method() {
             Method::GET => match request.path(){
+                
                 "/" => Response::new(StatusCode::Ok, self.read_file("index.html")), 
+
                 path => match self.read_file(path) {
                     Some(contents) => {
                         println!("_________________________> encontro algo");
