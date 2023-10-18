@@ -1,8 +1,17 @@
-use crate::http::Request; 
+use crate::http::{Response, Request, StatusCode, response, ParseError};
 use std::convert::TryFrom;
-use std::convert::TryInto;
+// use std::convert::TryInto;
 use std::net::TcpListener;
-use std::io::Read;
+use std::io::{Read, Write};
+
+pub trait Handler{
+    fn handle_reuqest(&mut self, request: &Request) -> Response;
+    fn handle_bad_request(&mut self, err: &ParseError) -> Response{
+        println!("Failed to parse the request: {}", err);
+        Response::new(StatusCode::BadRequest, None)
+    }
+}
+
 pub struct Server{
     addr: String,
 }
@@ -12,7 +21,7 @@ impl Server{
             addr 
         }
     }
-    pub fn run (self){
+    pub fn run (self, mut handler: impl Handler){
         let listener = TcpListener::bind(&self.addr).unwrap();
         println!("Rust Http server listening on port {}", self.addr);    
         loop {
@@ -23,14 +32,15 @@ impl Server{
                     match stream.read(&mut buffer){
                         Ok(_) =>{
                             println!("Received a request: {}", String::from_utf8_lossy(&buffer));
-                            match Request::try_from(&buffer[..]){
-                                Ok(request) => {
-                                    // println!(request);
-                                    dbg!(request);// no esta mostrando el response
-                                },
-                                Err(err) => println!("Failed to parse the request: {}", err)
+                            let response = match Request::try_from(&buffer[..]){
+                                Ok(request) => handler.handle_reuqest(&request),                                
+                                Err(err) =>  handler.handle_bad_request(&err)
+
+                            };
+                            if let Err(err) = response.send(&mut stream){
+                                println!("Failed to send response: {}", err)
                             }
-                            // let res: &Result<Request, _> = &buffer[..].try_into();
+
 
 
 
@@ -43,3 +53,6 @@ impl Server{
         }
     }
 }
+
+
+// 30

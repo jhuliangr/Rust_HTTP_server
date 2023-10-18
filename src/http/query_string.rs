@@ -29,6 +29,7 @@ impl<'buf> From<&'buf str> for QueryString<'buf>{
             if let Some(i) = sub_str.find('='){
                 key = &sub_str[..i];
                 val = &sub_str[i+1..];
+                // println!("--key: {key} val: {val}");
             }
             data.entry(key)
                 .and_modify(|existing: &mut Value | match existing {
@@ -40,7 +41,6 @@ impl<'buf> From<&'buf str> for QueryString<'buf>{
                 })
                 .or_insert(Value::Single(val));
         }
-
 
         QueryString{ data}
         // unimplemented!()

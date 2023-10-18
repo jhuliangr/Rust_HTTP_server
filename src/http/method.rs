@@ -16,6 +16,7 @@ pub enum Method{
 impl FromStr for Method {
     type Err = MethodError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // println!("--method: {s}");
         match s {
             "GET" => Ok(Self::GET) ,
             "DELETE" => Ok(Self::DELETE) , 
