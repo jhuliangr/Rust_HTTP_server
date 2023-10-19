@@ -2,7 +2,6 @@
 use server::Server;
 use website_handler::WebsiteHandler;
 use std::env;
-// use std::sync::mpsc;
 use std::thread;
 
 mod server;
