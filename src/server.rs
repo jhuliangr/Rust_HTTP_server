@@ -5,7 +5,7 @@ use std::net::TcpListener;
 use std::io::Read;
 
 pub trait Handler{
-    fn handle_reuqest(&mut self, request: &Request) -> Response;
+    fn handle_request(&mut self, request: &Request) -> Response;
     fn handle_bad_request(&mut self, err: &ParseError) -> Response{
         println!("Failed to parse the request: {}", err);
         Response::new(StatusCode::BadRequest, None)
@@ -13,17 +13,20 @@ pub trait Handler{
 }
 
 pub struct Server{
-    addr: String,
+    host: String,
+    port: u16
 }
 impl Server{
-    pub fn new(addr: String) -> Self{
+    pub fn new(host: String, port: u16) -> Self{
         Server {
-            addr 
+            host, 
+            port 
         }
     }
     pub fn run (self, mut handler: impl Handler){
-        let listener = TcpListener::bind(&self.addr).unwrap();
-        println!("Rust Http server listening on port {}", self.addr);    
+        let connection_string = self.host.to_owned() + ":" + &self.port.to_string();
+        let listener = TcpListener::bind(connection_string).unwrap();
+        println!("Rust Http server on host: {} listening on port {}",self.host, self.port);    
         loop {
             match listener.accept(){
                 Ok((mut stream, addr)) => {
@@ -33,7 +36,7 @@ impl Server{
                         Ok(_) =>{
                             println!("Received a request: {}", String::from_utf8_lossy(&buffer));
                             let response = match Request::try_from(&buffer[..]){
-                                Ok(request) => handler.handle_reuqest(&request),                                
+                                Ok(request) => handler.handle_request(&request),                                
                                 Err(err) =>  handler.handle_bad_request(&err)
 
                             };

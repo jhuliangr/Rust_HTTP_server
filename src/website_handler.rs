@@ -1,4 +1,4 @@
-use crate::http::{Request, Response, StatusCode,Method };
+use crate::http::{Request, Response, StatusCode, Method };
 use super::server::Handler;
 use std::fs;
 
@@ -28,8 +28,8 @@ impl WebsiteHandler{
     }
 }
 
-impl Handler for WebsiteHandler{
-    fn handle_reuqest(&mut self, request: &Request) -> Response {
+impl Handler for WebsiteHandler {
+    fn handle_request(&mut self, request: &Request) -> Response {
         // Response::new(StatusCode::Ok, Some("<h1>Test 1</h1>".to_string()))
         match request.method() {
             Method::GET => match request.path(){
@@ -38,11 +38,9 @@ impl Handler for WebsiteHandler{
 
                 path => match self.read_file(path) {
                     Some(contents) => {
-                        println!("_________________________> encontro algo");
                         Response::new(StatusCode::Ok, Some(contents))
                     },
                     None =>{ 
-                        println!("_________________________> No lo encontro {}", path);
                         Response::new(StatusCode::NotFound, None)
                     }
                 },
