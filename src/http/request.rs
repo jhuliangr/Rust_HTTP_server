@@ -38,12 +38,15 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf>{
     // GET /test?name=nombre&sort=1 HTTP/1.1\r\n...headers...
     fn try_from(buf: &'buf [u8]) -> Result<Request<'buf>, Self::Error>{
         let request = str::from_utf8(buf)?;
-
         let (method , request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
         let (mut path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
         let (protocol, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
-
-        let (headers, body) = separe_headers_and_body(request).ok_or(ParseError::InvalidRequest)?;
+        let mut headers = "";
+        let mut body = "";
+        
+        if method == "POST" {
+            (headers, body) = separe_headers_and_body(request).ok_or(ParseError::InvalidRequest)?;
+        }
 
 
         
@@ -87,7 +90,6 @@ fn separe_headers_and_body(request: &str) -> Option<(&str, &str)> {
         return None
     }
     Some((&request[..start], &request[start..end+1]))
-
 }
 
 pub enum ParseError {

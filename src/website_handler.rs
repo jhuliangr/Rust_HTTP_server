@@ -34,8 +34,9 @@ impl Handler for WebsiteHandler {
         match request.method() {
             Method::GET => match request.path(){
                 
-                "/" => Response::new(StatusCode::Ok, self.read_file("index.html")), 
-
+                "/" => {
+                    Response::new(StatusCode::Ok, self.read_file("index.html")) 
+                },
                 path => match self.read_file(path) {
                     Some(contents) => {
                         Response::new(StatusCode::Ok, Some(contents))
@@ -47,8 +48,10 @@ impl Handler for WebsiteHandler {
             }
             Method::POST =>match request.path(){
                 "/" => {
-                    let str = format!("It was sent a post to / with data: {} Thats ok", request.body().to_string());
-                    Response::new(StatusCode::Ok, Some(str))
+                    // let str = format!("It was sent a post to / with data: {} Thats ok", request.body().to_string());
+                    let html = self.read_file("post.html");
+                    let response_html = insert_post_into_body(&html.unwrap(), request.body().to_string());
+                    Response::new(StatusCode::Ok, Some(response_html))
                 },
 
                 not_found => {
@@ -59,4 +62,9 @@ impl Handler for WebsiteHandler {
             _ => Response::new(StatusCode::NotFound, None)
         }
     }
+}
+
+fn insert_post_into_body(html : &str, body: String) -> String{
+    let new_html = html.replace("{-}", &body);
+    new_html
 }
