@@ -45,6 +45,17 @@ impl Handler for WebsiteHandler {
                     }
                 },
             }
+            Method::POST =>match request.path(){
+                "/" => {
+                    let str = format!("It was sent a post to / with data: {} Thats ok", request.body().to_string());
+                    Response::new(StatusCode::Ok, Some(str))
+                },
+
+                not_found => {
+                    let str = format!("It was sent a post to {} with data: {} thats a not yet defined endpoint", not_found, request.body().to_string());
+                    Response::new(StatusCode::Ok, Some(str))
+                }
+            }
             _ => Response::new(StatusCode::NotFound, None)
         }
     }

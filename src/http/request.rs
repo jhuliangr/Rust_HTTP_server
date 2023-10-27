@@ -10,6 +10,8 @@ pub struct Request<'buf> {
     path: &'buf str,
     query_string: Option<QueryString<'buf>>,
     method: Method,
+    headers: &'buf str,
+    body: &'buf str
 }
 
 impl<'buf> Request<'buf>{
@@ -21,7 +23,13 @@ impl<'buf> Request<'buf>{
     }
     pub fn query_string(&self) -> Option<&QueryString>{
         self.query_string.as_ref()
-    }   
+    }
+    pub fn headers(&self) -> &str {
+        &self.headers
+    }  
+    pub fn body(&self) -> &str {
+        &self.body
+    }  
 }
 
 impl<'buf> TryFrom<&'buf [u8]> for Request<'buf>{
@@ -33,7 +41,11 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf>{
 
         let (method , request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
         let (mut path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
-        let (protocol, _) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (protocol, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
+
+        let (headers, body) = separe_headers_and_body(request).ok_or(ParseError::InvalidRequest)?;
+
+
         
         if "HTTP/1.1" != protocol{
             return Err(ParseError::InvalidProtocol)
@@ -46,7 +58,7 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf>{
             path = &path[..i];
         }
 
-        Ok(Self { path , query_string, method })
+        Ok(Self { path , query_string, method, headers, body })
     }
 }
 fn get_next_word(request: &str) -> Option<(&str, &str)> {
@@ -56,6 +68,25 @@ fn get_next_word(request: &str) -> Option<(&str, &str)> {
          }
     }
     None
+
+}
+fn separe_headers_and_body(request: &str) -> Option<(&str, &str)> {
+    let mut start = 0;
+    let mut end = 0;
+    for (i, c) in request.chars().enumerate(){
+
+        if c == '{' && start == 0 {
+        // return Some((&request[..i-1], &request[i..]));
+            start = i;
+        }
+        if c =='}' {
+            end = i;
+        }
+    }
+    if start == 0 {
+        return None
+    }
+    Some((&request[..start], &request[start..end+1]))
 
 }
 
