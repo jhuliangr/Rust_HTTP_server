@@ -12,5 +12,9 @@ cargo run
 
 ```
 **Routes implemented**
-for now theres only one
-http://127.0.0.1:8080/
+
+GET http://127.0.0.1:8080/
+
+POST http://127.0.0.1:8080/
+
+POST http://127.0.0.1:8080/[whatever]
