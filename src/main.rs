@@ -1,22 +1,30 @@
 #![allow(dead_code)]
+
 use server::Server;
-use website_handler::WebsiteHandler;
 use std::env;
 use std::thread;
+use website_handler::WebsiteHandler;
 
-mod server;
 mod http;
+mod server;
 mod website_handler;
 
-
 fn main() {
-    let default_path = format!("{}/public", env!("CARGO_MANIFEST_DIR"));
-    let public_path = env::var("PUBLIC_PATH").unwrap_or(default_path);
-    let server: Server = Server::new("127.0.0.1".to_owned(), 8080);
-    let pid = thread::spawn(||server.run(WebsiteHandler::new(public_path)));
-    
-    pid.join().unwrap();
-}
+    // Resolve the static files directory. `CARGO_MANIFEST_DIR` is set at compile time
+    // by Cargo, so the default always points to the project's `public/` folder
+    // regardless of where the binary is executed from.
+    let default_public_path = format!("{}/public", env!("CARGO_MANIFEST_DIR"));
+    let public_path = env::var("PUBLIC_PATH").unwrap_or(default_public_path);
 
-//add threads and sync library
-//add async work
+    let server = Server::new("127.0.0.1".to_owned(), 8080);
+
+    // Spawn the server on a dedicated thread. `move` transfers ownership of
+    // `server` and `public_path` into the thread's closure. The main thread
+    // then blocks on `join()`, waiting for the server to finish (which it won't,
+    // since the accept loop runs forever -- Ctrl+C terminates the process).
+    let server_thread = thread::spawn(move || {
+        server.run(WebsiteHandler::new(public_path));
+    });
+
+    server_thread.join().unwrap();
+}

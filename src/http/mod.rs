@@ -1,12 +1,16 @@
-pub use query_string::{QueryString, Value as QueryStringValue };
+// Re-export public types so consumers can write `use crate::http::Request`
+// instead of `use crate::http::request::Request`. This is a common Rust pattern
+// for keeping module internals organized while presenting a flat public API.
+
+pub use method::Method;
+pub use query_string::QueryString;
 pub use request::ParseError;
 pub use request::Request;
-pub use method::Method;
 pub use response::Response;
 pub use status_code::StatusCode;
 
+pub mod method;
 pub mod query_string;
 pub mod request;
-pub mod method;
 pub mod response;
 pub mod status_code;
